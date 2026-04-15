@@ -30,7 +30,7 @@ Follow these steps inside your BulkVS portal to link your DID to the gateway.
         `http://<YOUR_PBX_IP>/sms/pizza.php`
 2.  **Firewall Configuration:**
     * Whitelist the BulkVS IPs to ensure the webhook reaches your server. 
-    * **Common IPs:** `52.206.134.245` or `192.9.236.42`.
+    * **Common IPs:** `52.206.134.245` or `192.9.236.42`
 3.  **DID Mapping:**
     * Go to **DIDs -> Manage**.
     * Select your DID and click **View**.

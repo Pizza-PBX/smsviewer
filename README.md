@@ -1,19 +1,49 @@
-INSIDE TERMINAL STEPS 
+# 🚀 VoIP SMS Gateway for BulkVS & Flowroute
 
-step 1) cd /var/www/html
-step 2) make a directory named "sms" 
-step 3) cd /var/www/html/sms 
-step 4) then inside /var/www/html/sms you will create the 8 files same names same contents (there in the github the .php ones) the only 2 files you will need to nano and modify are config.php and login.php to add your credentials 
-step 5) run these below 
-chown -R asterisk:asterisk /var/www/html/sms
-chmod -R 775 /var/www/html/sms
+A lightweight PHP integration designed to handle SMS webhooks for PBX systems (FreePBX/Asterisk). This setup allows you to receive and process SMS messages by routing webhooks from your provider directly to your server.
 
-INSIDE BULKVS STEPS 
-step 1) go to message webhooks and add a webhook with your pbx url followed by /sms/pizza.php (example http://123.456.789.0/sms/pizza.php)
-step 2) if your pbx has a firewall unblock the bulkvs ips found in messaging instructions (there usually 52.206.134.245 or 192.9.236.42 though) 
-step 3) go to DIDs - manage and select your DID that you purchased and click on view there 
-- set messaging webhook to webhook name you just created 
-- make sure to enable SMS 
-- make sure you select your trunk group (this is created in interconnection though im assuming you already have it) 
+---
 
-* this will work with flowroute too just make sure to see there documentation of how to do it and what ips to unblock 
+### 📂 Installation & Server Setup
+
+Run these steps in your terminal to configure the web directory and set appropriate permissions.
+
+**Terminal Commands:**
+1. cd /var/www/html
+2. mkdir sms
+3. cd sms
+4. (Upload the 8 .php files here)
+5. nano config.php
+6. nano login.php
+7. chown -R asterisk:asterisk /var/www/html/sms
+8. chmod -R 775 /var/www/html/sms
+
+---
+
+### 🌐 Provider Configuration (BulkVS)
+
+Follow these steps inside your BulkVS portal to link your DID to the gateway.
+
+1.  **Create Message Webhook:**
+    * Navigate to **Message Webhooks**.
+    * Add a new webhook URL pointing to your server: 
+        `http://<YOUR_PBX_IP>/sms/pizza.php`
+2.  **Firewall Configuration:**
+    * Whitelist the BulkVS IPs to ensure the webhook reaches your server. 
+    * **Common IPs:** `52.206.134.245` or `192.9.236.42`.
+3.  **DID Mapping:**
+    * Go to **DIDs -> Manage**.
+    * Select your DID and click **View**.
+    * Set **Messaging Webhook** to the name created in Step 1.
+    * Ensure **Enable SMS** is checked.
+    * Select your **Trunk Group** (configured under Interconnection).
+
+---
+
+### 💡 Alternative Providers
+
+* **Flowroute:** This setup is fully compatible. Refer to Flowroute's documentation for their specific API callback format and ensure their signaling IPs are unblocked in your firewall.
+
+---
+
+> **Note:** Ensure your PBX firewall (System Admin -> Firewall in FreePBX) is configured to allow traffic on Port 80/443 from your provider's IP range.

@@ -1,0 +1,25 @@
+<?php
+include 'config.php';
+
+$sender = isset($_POST['sender']) ? $conn->real_escape_string($_POST['sender']) : null;
+
+// Bulk delete all messages from sender
+if (isset($_POST['delete_all']) && $sender) {
+    $conn->query("DELETE FROM SMS WHERE sender = '$sender'");
+}
+
+// Delete selected messages only
+if (isset($_POST['delete_selected']) && isset($_POST['delete_ids'])) {
+    $ids = array_filter($_POST['delete_ids'], 'is_numeric');
+    if (!empty($ids)) {
+        $id_list = implode(',', $ids);
+        $sql = "DELETE FROM SMS WHERE id IN ($id_list)";
+        if (!$conn->query($sql)) {
+            die("SQL error: " . $conn->error);
+        }
+    }
+}
+
+// Always redirect back
+header("Location: view.php?sender=" . urlencode($sender));
+exit;

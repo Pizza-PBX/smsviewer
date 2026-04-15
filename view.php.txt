@@ -1,0 +1,173 @@
+<?php
+session_start();
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header('Location: login.php');
+    exit;
+}
+
+include 'config.php';
+
+// Get unique senders
+$senders = $conn->query("SELECT DISTINCT sender FROM SMS ORDER BY sender ASC");
+
+// Detect active sender for styling
+$activeSender = $_GET['sender'] ?? '';
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+
+    <a href="logout.php" style="float: right; color: red; text-decoration: none;">Logout</a>
+    <title>SMS Viewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-HK5fgLBL+x7k+tZZU3+U+T+o6fH8FZ5K6Rz5XTPwM8cUg5zEwxF1ZKqJ7M1Z7QmZrDhR+NfvGnW1u9K9Dv3J9g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #2f3542;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            margin-top: 0;
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #f1f2f6;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #dcdde1;
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #57606f;
+            color: #ffffff;
+        }
+
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f1f2f6;
+        }
+
+        .message-box {
+            background: white;
+            border-left: 4px solid #70a1ff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .message-box input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .message-box:hover {
+            background: #f9fbfd;
+        }
+
+        .delete-all-btn,
+        button[name="delete_selected"] {
+            background-color: #e84118;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button[name="delete_selected"] {
+            background-color: #44bd32;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                display: flex;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .sidebar a {
+                display: inline-block;
+                margin-right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h3>Senders</h3>
+    <?php while ($row = $senders->fetch_assoc()): ?>
+        <a href="?sender=<?= urlencode($row['sender']) ?>" class="<?= ($activeSender === $row['sender']) ? 'active' : '' ?>">
+            <?= htmlspecialchars($row['sender']) ?>
+        </a>
+    <?php endwhile; ?>
+</div>
+
+<div class="content">
+<?php if ($activeSender): 
+    $sender = $conn->real_escape_string($activeSender);
+    $messages = $conn->query("SELECT * FROM SMS WHERE sender = '$sender' ORDER BY r_date DESC");
+?>
+    <h2>Messages from <em><?= htmlspecialchars($sender) ?></em></h2>
+
+    <form method="POST" action="delete.php">
+        <input type="hidden" name="sender" value="<?= htmlspecialchars($sender) ?>">
+        <button type="submit" name="delete_all" class="delete-all-btn" onclick="return confirm('Delete all messages from this sender?')">
+            <i class="fas fa-trash"></i> Delete All From This Sender
+        </button>
+
+        <?php while ($msg = $messages->fetch_assoc()): ?>
+            <div class="message-box">
+                <label>
+                    <input type="checkbox" name="delete_ids[]" value="<?= $msg['id'] ?>">
+                    <strong>Date:</strong> <?= $msg['r_date'] ?><br>
+                    <strong>To:</strong> <?= htmlspecialchars($msg['receiver']) ?><br>
+                    <strong>Message:</strong> <?= nl2br(htmlspecialchars($msg['message'])) ?>
+                </label>
+            </div>
+        <?php endwhile; ?>
+
+        <button type="submit" name="delete_selected">
+            <i class="fas fa-check"></i> Delete Selected
+        </button>
+    </form>
+<?php else: ?>
+    <p>Select a sender from the left to view their messages.</p>
+<?php endif; ?>
+</div>
+
+</body>
+</html>
+
+<?php $conn->close(); ?>

@@ -1,0 +1,22 @@
+<?php
+include 'config.php';
+$strJsonFileContents = file_get_contents ("php://input");
+$file = fopen("test.json","w");
+fwrite($file,$strJsonFileContents);
+//$strJsonFileContents = file_get_contents("test.json");
+$data = json_decode($strJsonFileContents, true);
+$from = $data['From'];
+$to = $data['To'][0];
+$message = urldecode($data['Message']);
+
+$escaped_string = mysqli_real_escape_string($conn, $message);
+echo $sql = "INSERT INTO SMS (r_date, sender, receiver, message, direction) VALUES (now(),'$from','$to','$escaped_string','inbound')";
+
+if ($conn->query($sql) === TRUE) {
+echo "OKAY";
+http_response_code(200);
+} else {
+  echo "Error: " . $sql . "<br>" . $conn->error;
+}
+$conn->close();
+?>
